@@ -9,3 +9,7 @@ export const EntityConstant = {
     normalLength: 64,
   },
 };
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 59fa2aa (add migration and entity for users, posts and tags)
