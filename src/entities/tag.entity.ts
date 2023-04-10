@@ -1,13 +1,13 @@
-import { Column, Entity, JoinColumn, OneToMany } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { Base } from "./base.entity";
 import { Post } from "./post.entity";
 import { EntityConstant } from "src/shared/constants/entity.constant";
 
 @Entity('tags')
 export class Tag extends Base {
-  @OneToMany(() => Post, (post) => post.tags)
-  @JoinColumn({name: 'post_id'})
-  post: Post
+  @ManyToOne(() => Post, (post) => post.tags)
+  @JoinColumn({ name: 'post_id' })
+  post: Post;
 
   @Column({
     type: 'uuid',
