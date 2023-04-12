@@ -1,9 +1,9 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { Post } from "src/entities/post.entity";
+import { Injectable } from '@nestjs/common';
 import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
-import { CreatePostDto } from "./dto/create-post.dto";
-import { Tag } from "src/entities/tag.entity";
-import { UpdatePostDto } from "./dto/update-post.dto";
+import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { Post } from '../entities/post.entity';
+import { Tag } from '../entities/tag.entity';
 
 @Injectable()
 export class PostRepository extends Repository<Post> {
@@ -11,20 +11,29 @@ export class PostRepository extends Repository<Post> {
     super(Post, dataSource.manager);
   }
 
-  async createPostAndTags(postDto: CreatePostDto | UpdatePostDto, userId: string): Promise<Post> {
-    return await this.dataSource.transaction(async manager => {
-      const post = await manager.save(Post, {...postDto, userId});
-      post.tags = await manager.save(Tag, postDto.tags.map((tag) => ({ postId: post.id, ...tag })));
+  async createPostAndTags(
+    postDto: CreatePostDto | UpdatePostDto,
+    userId: string,
+  ): Promise<Post> {
+    return await this.dataSource.transaction(async (manager) => {
+      const post = await manager.save(Post, { ...postDto, userId });
+      if (typeof postDto.tags !== 'undefined') {
+        post.tags = await manager.save(
+          Tag,
+          postDto.tags.map((tag) => ({ postId: post.id, ...tag })),
+        );
+      }
 
       return post;
     });
   }
 
-  async findOneByOrFail(whereOpts: FindOptionsWhere<Post> | FindOptionsWhere<Post>[]): Promise<Post> {
-    const post = await this.findOneBy(whereOpts);
-    if (!post) {
-      throw new BadRequestException([`This ${Post.name} does not exist!`]);
-    }
-    return post;
+  async findOneByOrFail(
+    whereOpts: FindOptionsWhere<Post> | FindOptionsWhere<Post>[],
+  ): Promise<Post> {
+    return await this.createQueryBuilder(Post.name)
+      .leftJoinAndSelect('Post.tags', 'tags', 'tags.deleted IS NULL')
+      .where(whereOpts)
+      .getOne();
   }
 }

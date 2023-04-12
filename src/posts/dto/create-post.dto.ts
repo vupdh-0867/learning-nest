@@ -5,13 +5,10 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { Post } from "src/entities/post.entity";
-import { EntityConstant } from "src/shared/constants/entity.constant";
-import { CreateTagDto } from 'src/tags/create-tag.dto';
+import { EntityConstant } from '../../shared/constants/entity.constant';
+import { CreateTagDto } from '../../tags/create-tag.dto';
 
 export class CreatePostDto {
-  static resorce = Post.name
-
   @IsNotEmpty()
   @MaxLength(EntityConstant.shortLength)
   title: string;

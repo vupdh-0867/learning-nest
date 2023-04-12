@@ -1,5 +1,5 @@
 export const EntityConstant = {
-    shortLength: 255,
+  shortLength: 255,
   longLength: 2000,
   maxLongLength: 10000,
   timePrecision: 3,

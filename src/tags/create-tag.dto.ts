@@ -1,5 +1,5 @@
-import { IsNotEmpty, MaxLength } from "class-validator";
-import { EntityConstant } from "src/shared/constants/entity.constant";
+import { IsNotEmpty, MaxLength } from 'class-validator';
+import { EntityConstant } from '../shared/constants/entity.constant';
 
 export class CreateTagDto {
   @IsNotEmpty()

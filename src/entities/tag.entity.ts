@@ -1,7 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
-import { Base } from "./base.entity";
-import { Post } from "./post.entity";
-import { EntityConstant } from "src/shared/constants/entity.constant";
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Base } from './base.entity';
+import { Post } from './post.entity';
+import { EntityConstant } from '../shared/constants/entity.constant';
 
 @Entity('tags')
 export class Tag extends Base {
@@ -19,7 +19,7 @@ export class Tag extends Base {
   @Column({
     type: 'varchar',
     name: 'name',
-    length: EntityConstant.shortLength
+    length: EntityConstant.shortLength,
   })
-  name: string
+  name: string;
 }

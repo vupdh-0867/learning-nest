@@ -1,29 +1,26 @@
-  import {
-    CreateDateColumn,
-    DeleteDateColumn,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
-  } from 'typeorm';
-  import { Exclude, Expose } from 'class-transformer';
-  import { EntityConstant } from '../shared/constants/entity.constant';
-  export const GROUP_TIME = 'group_time';
+import {
+  CreateDateColumn,
+  DeleteDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Exclude } from 'class-transformer';
+import { EntityConstant } from '../shared/constants/entity.constant';
 
-  export abstract class Base {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+export abstract class Base {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Expose({ groups: [GROUP_TIME]})
-    @UpdateDateColumn({ precision: EntityConstant.timePrecision })
-    updated: Date;
+  @UpdateDateColumn({ precision: EntityConstant.timePrecision })
+  updated: Date;
 
-    @Expose({ groups: [GROUP_TIME]})
-    @CreateDateColumn({ precision: EntityConstant.timePrecision })
-    created: Date;
+  @CreateDateColumn({ precision: EntityConstant.timePrecision })
+  created: Date;
 
-    @Exclude()
-    @DeleteDateColumn({
-      type: 'timestamp',
-      precision: EntityConstant.timePrecision,
-    })
-    deleted: Date;
-  }
+  @Exclude()
+  @DeleteDateColumn({
+    type: 'timestamp',
+    precision: EntityConstant.timePrecision,
+  })
+  deleted: Date;
+}

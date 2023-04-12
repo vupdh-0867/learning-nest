@@ -3,8 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 
 ConfigModule.forRoot();
 
-const isTestEnv = process.env.NODE_ENV !== 'test';
-
 export default {
   type: 'postgres',
   host: process.env.DATABASE_HOST,
@@ -12,9 +10,7 @@ export default {
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE,
-  entities: [
-    isTestEnv ? 'dist/entities/*.entity.js' : 'src/entities/*.entity.ts',
-  ],
+  entities: ['dist/entities/*.entity.js'],
   migrations: ['dist/database/migrations/*.js'],
   migrationsTableName: 'migrations',
 } as DataSourceOptions;
