@@ -1,4 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+
 import { Base } from './base.entity';
 import { Post } from './post.entity';
 import { EntityConstant } from '../shared/constants/entity.constant';

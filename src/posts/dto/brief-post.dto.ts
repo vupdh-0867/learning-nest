@@ -9,4 +9,7 @@ export class BriefPostDto {
 
   @Expose()
   description: string;
+
+  @Expose()
+  fileName: string;
 }

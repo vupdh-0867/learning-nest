@@ -5,6 +5,7 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
+
 import { EntityConstant } from '../../shared/constants/entity.constant';
 import { CreateTagDto } from '../../tags/create-tag.dto';
 
@@ -21,4 +22,6 @@ export class CreatePostDto {
   @ValidateNested({ each: true })
   @Type(() => CreateTagDto)
   tags: CreateTagDto[];
+
+  fileName: string;
 }

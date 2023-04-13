@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
+
 import { Base } from './base.entity';
 import { User } from './user.entity';
 import { Tag } from './tag.entity';
@@ -44,4 +45,11 @@ export class Post extends Base {
     nullable: true,
   })
   description: string;
+
+  @Column({
+    type: 'varchar',
+    name: 'file_name',
+    nullable: true,
+  })
+  fileName: string;
 }

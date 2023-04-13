@@ -1,42 +1,68 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+
 import { PostRepository } from './post.repository';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from '../entities/post.entity';
+import { FileService } from '../multer/file.service';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly postRepository: PostRepository) {}
+  constructor(
+    private readonly postRepository: PostRepository,
+    private readonly fileService: FileService,
+  ) {}
 
-  async create(createPostDto: CreatePostDto, userId: string): Promise<Post> {
+  async create(
+    createPostDto: CreatePostDto,
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<Post> {
     if (await this.postRepository.findOneBy({ title: createPostDto.title })) {
       throw new BadRequestException(['Title has been taken!']);
     }
 
-    return this.postRepository.createPostAndTags(
-      {
-        ...createPostDto,
-      },
+    const post = await this.postRepository.createPostAndTags(
+      createPostDto,
       userId,
+      file,
     );
+
+    return this.attachPresignedUrl(post);
   }
 
   async update(
     id: string,
     updatePostDto: UpdatePostDto,
     userId: string,
+    file: Express.Multer.File,
   ): Promise<Post> {
-    return this.postRepository.createPostAndTags(
+    const post = await this.postRepository.createPostAndTags(
       {
         ...updatePostDto,
         id,
       },
       userId,
+      file,
     );
+
+    return this.attachPresignedUrl(post);
   }
 
   async findAll(): Promise<Post[]> {
-    return await this.postRepository.find();
+    const posts: Post[] = await this.postRepository.find();
+    const promisePresignedUrls = [];
+    posts.forEach(({ fileName }) => {
+      promisePresignedUrls.push(
+        this.fileService.generatePresignedUrl(fileName),
+      );
+    });
+    const presignedUrls: string[] = await Promise.all(promisePresignedUrls);
+
+    return posts.map((post, index) => ({
+      ...post,
+      fileName: presignedUrls[index],
+    }));
   }
 
   async findOne(id: string): Promise<Post> {
@@ -45,7 +71,7 @@ export class PostsService {
       throw new BadRequestException([`This ${Post.name} does not exist!`]);
     }
 
-    return post;
+    return this.attachPresignedUrl(post);
   }
 
   async remove(userId: string, id: string): Promise<Post> {
@@ -56,5 +82,12 @@ export class PostsService {
     this.postRepository.softDelete(post.id);
 
     return post;
+  }
+
+  private async attachPresignedUrl(post: Post): Promise<Post> {
+    return {
+      ...post,
+      fileName: await this.fileService.generatePresignedUrl(post.fileName),
+    };
   }
 }

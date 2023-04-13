@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+
 import { Tag } from '../../tags/tag.dto';
 
 export class DetailsPostDto {
@@ -13,6 +14,9 @@ export class DetailsPostDto {
 
   @Expose()
   userId: string;
+
+  @Expose()
+  fileName: string;
 
   @Expose()
   @Type(() => Tag)
