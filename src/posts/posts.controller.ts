@@ -14,7 +14,7 @@ import { BriefPostDto } from './dto/brief-post.dto';
 import { DetailsPostDto } from './dto/details-post.dto';
 import { Serializer } from '../decorators/serializer.decorator';
 // TO-DO: Load user id when apply authentication
-const USER_ID = '19640e8c-b0ba-46c2-92f5-03c80dc1dfc4';
+const USER_ID = '87bed0dc-2f00-4a05-ac4b-ac6333dac71f';
 
 @Controller('posts')
 export class PostsController {
