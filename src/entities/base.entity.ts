@@ -5,6 +5,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+
 import { EntityConstant } from '../shared/constants/entity.constant';
 
 export abstract class Base {
