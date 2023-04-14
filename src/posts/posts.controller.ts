@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
@@ -19,9 +20,11 @@ import { BriefPostDto } from './dto/brief-post.dto';
 import { DetailsPostDto } from './dto/details-post.dto';
 import { Serializer } from '../decorators/serializer.decorator';
 import { FileSizeValidationPipe } from '../shared/pipes/file-validation.pipe';
-// TO-DO: Load user id when apply authentication
-const USER_ID = '87bed0dc-2f00-4a05-ac4b-ac6333dac71f';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../shared/decorators/current-user.decorator';
+import { UserDto } from '../user/dtos/user.dto';
 
+@UseGuards(JwtAuthGuard)
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
@@ -31,10 +34,11 @@ export class PostsController {
   @UsePipes(new FileSizeValidationPipe())
   @Serializer(DetailsPostDto)
   create(
+    @CurrentUser() user: UserDto,
     @Body() createPostDto: CreatePostDto,
     @UploadedFile('file') file: Express.Multer.File,
   ): Promise<BriefPostDto> {
-    return this.postsService.create(createPostDto, USER_ID, file);
+    return this.postsService.create(createPostDto, user.id, file);
   }
 
   @Get()
@@ -51,8 +55,8 @@ export class PostsController {
 
   @Delete(':id')
   @Serializer(BriefPostDto)
-  remove(@Param('id') id: string): Promise<BriefPostDto> {
-    return this.postsService.remove(USER_ID, id);
+  remove(@CurrentUser() user: UserDto, @Param('id') id: string): Promise<BriefPostDto> {
+    return this.postsService.remove(user.id, id);
   }
 
   @Patch(':id')
@@ -60,10 +64,11 @@ export class PostsController {
   @UsePipes(new FileSizeValidationPipe())
   @Serializer(DetailsPostDto)
   update(
+    @CurrentUser() user: UserDto,
     @Body() updatePostDto: UpdatePostDto,
     @UploadedFile('file') file: Express.Multer.File,
     @Param('id') id: string,
   ): Promise<DetailsPostDto> {
-    return this.postsService.update(id, updatePostDto, USER_ID, file);
+    return this.postsService.update(id, updatePostDto, user.id, file);
   }
 }
