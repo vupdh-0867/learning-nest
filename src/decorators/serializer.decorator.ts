@@ -1,6 +1,7 @@
 import {
   CallHandler,
   ExecutionContext,
+  HttpStatus,
   NestInterceptor,
   UseInterceptors,
 } from '@nestjs/common';
@@ -23,9 +24,12 @@ export class SerializeInterceptor implements NestInterceptor {
   ): Observable<any> | Promise<Observable<any>> {
     return next.handle().pipe(
       map((data: any) => {
-        return plainToInstance(this.dto, data, {
-          excludeExtraneousValues: true,
-        });
+        return {
+          statusCode: HttpStatus.OK,
+          data: plainToInstance(this.dto, data, {
+            excludeExtraneousValues: true,
+          }),
+        };
       }),
     );
   }

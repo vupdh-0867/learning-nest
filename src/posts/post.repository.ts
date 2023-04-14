@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
+import { DataSource, EntityNotFoundError, FindOptionsWhere, Repository } from 'typeorm';
+
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from '../entities/post.entity';
@@ -31,9 +32,13 @@ export class PostRepository extends Repository<Post> {
   async findOneByOrFail(
     whereOpts: FindOptionsWhere<Post> | FindOptionsWhere<Post>[],
   ): Promise<Post> {
-    return await this.createQueryBuilder(Post.name)
-      .leftJoinAndSelect('Post.tags', 'tags', 'tags.deleted IS NULL')
-      .where(whereOpts)
-      .getOne();
+    const post = await this.createQueryBuilder(Post.name)
+    .leftJoinAndSelect('Post.tags', 'tags', 'tags.deleted IS NULL')
+    .where(whereOpts)
+    .getOne();
+    if (!post) {
+      throw new EntityNotFoundError(Post.name, undefined);
+    }
+    return post;
   }
 }
