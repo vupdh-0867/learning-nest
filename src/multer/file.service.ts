@@ -22,7 +22,7 @@ export class FileService {
   }
 
   async generatePresignedUrl(key: string): Promise<string> {
-    if(!key) return "";
+    if (!key) return '';
 
     return await this.s3.getSignedUrlPromise('getObject', {
       Bucket: process.env.BUCKET_NAME,

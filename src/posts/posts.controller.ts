@@ -38,7 +38,7 @@ export class PostsController {
     @Body() createPostDto: CreatePostDto,
     @UploadedFile('file') file: Express.Multer.File,
   ): Promise<BriefPostDto> {
-    return this.postsService.create(createPostDto, user.id, file);
+    return this.postsService.create(createPostDto, user, file);
   }
 
   @Get()
@@ -55,7 +55,10 @@ export class PostsController {
 
   @Delete(':id')
   @Serializer(BriefPostDto)
-  remove(@CurrentUser() user: UserDto, @Param('id') id: string): Promise<BriefPostDto> {
+  remove(
+    @CurrentUser() user: UserDto,
+    @Param('id') id: string,
+  ): Promise<BriefPostDto> {
     return this.postsService.remove(user.id, id);
   }
 
