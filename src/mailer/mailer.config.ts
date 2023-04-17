@@ -1,8 +1,5 @@
 import { MailerOptions } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
-import { ConfigModule } from '@nestjs/config';
-
-ConfigModule.forRoot();
 
 export const mailerConfig: MailerOptions = {
   transport: {

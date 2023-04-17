@@ -5,15 +5,15 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from '../entities/post.entity';
 import { FileService } from '../multer/file.service';
-import { SendMailService } from 'src/mailer/send-mail.service';
-import { UserDto } from 'src/user/dtos/user.dto';
+import { UserDto } from '../user/dtos/user.dto';
+import { QueueService } from 'src/queue/queue.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly postRepository: PostRepository,
     private readonly fileService: FileService,
-    private readonly sendMailService: SendMailService,
+    private readonly queueService: QueueService,
   ) {}
 
   async create(
@@ -30,10 +30,7 @@ export class PostsService {
       user.id,
       file,
     );
-    this.sendMailService.send(user.email, 'Post created successfully!', 'create-post', {
-      username: user.username,
-      title: post.title,
-    });
+    this.queueService.sendMailCreatePost(user, post);
 
     return this.attachPresignedUrl(post);
   }

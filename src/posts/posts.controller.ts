@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UploadedFile,
@@ -49,7 +50,7 @@ export class PostsController {
 
   @Get(':id')
   @Serializer(DetailsPostDto)
-  findOne(@Param('id') id: string): Promise<DetailsPostDto> {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<DetailsPostDto> {
     return this.postsService.findOne(id);
   }
 
@@ -57,7 +58,7 @@ export class PostsController {
   @Serializer(BriefPostDto)
   remove(
     @CurrentUser() user: UserDto,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<BriefPostDto> {
     return this.postsService.remove(user.id, id);
   }
@@ -70,7 +71,7 @@ export class PostsController {
     @CurrentUser() user: UserDto,
     @Body() updatePostDto: UpdatePostDto,
     @UploadedFile('file') file: Express.Multer.File,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<DetailsPostDto> {
     return this.postsService.update(id, updatePostDto, user.id, file);
   }
