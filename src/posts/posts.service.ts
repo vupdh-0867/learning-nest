@@ -83,6 +83,10 @@ export class PostsService {
       userId: userId,
       id: id,
     });
+    if (!post) {
+      throw new BadRequestException([`This ${Post.name} does not exist!`]);
+    }
+
     this.postRepository.softDelete(post.id);
 
     return post;

@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsOptional,
@@ -11,6 +11,7 @@ import { CreateTagDto } from '../../tags/create-tag.dto';
 
 export class CreatePostDto {
   @IsNotEmpty()
+  @Transform(({ value }) => value?.trim())
   @MaxLength(EntityConstant.shortLength)
   title: string;
 
@@ -23,5 +24,18 @@ export class CreatePostDto {
   @Type(() => CreateTagDto)
   tags: CreateTagDto[];
 
+  @IsOptional()
   fileName: string;
+
+  constructor(
+    title: string,
+    description: string,
+    fileName?: string,
+    tags?: CreateTagDto[],
+  ) {
+    this.title = title;
+    this.description = description;
+    this.fileName = fileName || '';
+    this.tags = tags || [];
+  }
 }
