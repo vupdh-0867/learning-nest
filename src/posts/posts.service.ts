@@ -5,17 +5,20 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from '../entities/post.entity';
 import { FileService } from '../multer/file.service';
+import { UserDto } from '../user/dtos/user.dto';
+import { QueueService } from 'src/queue/queue.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly postRepository: PostRepository,
     private readonly fileService: FileService,
+    private readonly queueService: QueueService,
   ) {}
 
   async create(
     createPostDto: CreatePostDto,
-    userId: string,
+    user: UserDto,
     file: Express.Multer.File,
   ): Promise<Post> {
     if (await this.postRepository.findOneBy({ title: createPostDto.title })) {
@@ -24,9 +27,10 @@ export class PostsService {
 
     const post = await this.postRepository.createPostAndTags(
       createPostDto,
-      userId,
+      user.id,
       file,
     );
+    this.queueService.sendMailCreatePost(user, post);
 
     return this.attachPresignedUrl(post);
   }
