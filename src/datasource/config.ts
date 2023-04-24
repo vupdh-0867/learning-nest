@@ -1,7 +1,9 @@
 import { DataSourceOptions } from 'typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { config } from 'dotenv';
 
-ConfigModule.forRoot();
+config();
+
+const isTestEnv = process.env.NODE_ENV === 'test';
 
 export default {
   type: 'postgres',
@@ -9,8 +11,12 @@ export default {
   port: +process.env.DATABASE_PORT,
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
-  database: process.env.DATABASE,
-  entities: ['dist/entities/*.entity.js'],
+  database: isTestEnv ? process.env.DATABASE_TEST : process.env.DATABASE,
+  entities: [
+    isTestEnv ? 'src/entities/*.entity.ts' : 'dist/entities/*.entity.js',
+  ],
   migrations: ['dist/database/migrations/*.js'],
   migrationsTableName: 'migrations',
+  seeds: ['src/database/seeds/*.seed.ts'],
+  factories: ['src/database/factories/*.factory.ts'],
 } as DataSourceOptions;
