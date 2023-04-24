@@ -7,12 +7,14 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -25,7 +27,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../shared/decorators/current-user.decorator';
 import { UserDto } from '../user/dtos/user.dto';
 
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
@@ -76,5 +78,42 @@ export class PostsController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<DetailsPostDto> {
     return this.postsService.update(id, updatePostDto, user.id, file);
+  }
+
+  @Get('export/csv')
+  async exportCsv(@Res() res: Response) {
+    const csvData = await this.postsService.exportCsv();
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=data.csv`);
+    res.status(200).send(csvData);
+  }
+
+  @Get('export/excel')
+  async exportExcel(@Res() res: Response) {
+    const workbook = await this.postsService.exportExcel();
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename=data.xlsx');
+    await workbook.xlsx.write(res);
+    res.end();
+  }
+
+  @Get('export/pdf')
+  async exportPdf(@Res() res: Response) {
+    const buffer = await this.postsService.exportPdf();
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="my-document.pdf"',
+    );
+    res.send(buffer);
   }
 }

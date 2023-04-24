@@ -15,7 +15,7 @@ describe('AuthController (e2e)', () => {
   const userPassword = '123456';
 
   beforeAll(async () => {
-    app = app = await initApp();
+    app = await initApp();
     dataSource = await initDataSource();
     setDataSource(dataSource);
     user = await createUser(userEmail, userPassword);
