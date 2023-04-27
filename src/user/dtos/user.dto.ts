@@ -10,9 +10,6 @@ export class UserDto {
   @Expose()
   email: string;
 
-  @Expose()
-  code: string;
-
   @Exclude()
   password: string;
 }

@@ -6,7 +6,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from '../entities/post.entity';
 import { FileService } from '../multer/file.service';
 import { UserDto } from '../user/dtos/user.dto';
-import { QueueService } from 'src/queue/queue.service';
+import { QueueService } from '../queue/queue.service';
 
 @Injectable()
 export class PostsService {

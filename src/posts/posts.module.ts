@@ -7,9 +7,15 @@ import { PostRepository } from './post.repository';
 import { Post } from '../entities/post.entity';
 import { UploadFileModule } from '../multer/upload-file.module';
 import { QueueModule } from '../queue/queue.module';
+import { TagModule } from '../tags/tag.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post]), UploadFileModule, QueueModule],
+  imports: [
+    TypeOrmModule.forFeature([Post]),
+    UploadFileModule,
+    QueueModule,
+    TagModule,
+  ],
   providers: [PostsService, PostRepository],
   controllers: [PostsController],
 })

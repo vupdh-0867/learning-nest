@@ -8,6 +8,7 @@ import { PostRepository } from './post.repository';
 import { CreatePostDto } from './dto/create-post.dto';
 import { FileService } from '../multer/file.service';
 import { Post } from '../entities/post.entity';
+import { User } from '../entities/user.entity';
 
 describe('PostService', () => {
   let service: PostsService;
@@ -19,6 +20,11 @@ describe('PostService', () => {
   const testTitle = 'title 1';
   const testDescription = 'this is description';
   const onePost = new Post(testTitle, testDescription, 'uploaded_example.com');
+  const user = new User(
+    'test_user',
+    '2222',
+    'phan.dang.hai.vu@sun-asterisk.com',
+  );
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -103,7 +109,7 @@ describe('PostService', () => {
           buffer: Buffer.from(__dirname + '/../../example.jpg'),
           size: 518,
         } as Express.Multer.File;
-        const post = await service.create(createPostDTO, 'user_id', mockFile);
+        const post = await service.create(createPostDTO, user, mockFile);
 
         expect(post).toEqual(onePost);
       });
@@ -122,9 +128,9 @@ describe('PostService', () => {
         } as Express.Multer.File;
         jest.spyOn(repo, 'findOneBy').mockResolvedValue(onePost);
 
-        expect(
-          service.create(createPostDTO, 'user_id', mockFile),
-        ).rejects.toThrow(new BadRequestException(['Title has been taken!']));
+        expect(service.create(createPostDTO, user, mockFile)).rejects.toThrow(
+          new BadRequestException(['Title has been taken!']),
+        );
       });
     });
   });

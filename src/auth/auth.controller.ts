@@ -17,7 +17,10 @@ import { UserService } from '../user/user.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private userService: UserService) {}
+  constructor(
+    private authService: AuthService,
+    private userService: UserService,
+  ) {}
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -29,7 +32,7 @@ export class AuthController {
   @Post('register')
   @Serializer(UserDto)
   @HttpCode(HttpStatus.CREATED)
-  async addUser(@Body() userDto: UserDto,) {
+  async addUser(@Body() userDto: UserDto) {
     return this.userService.create(userDto);
   }
 }
