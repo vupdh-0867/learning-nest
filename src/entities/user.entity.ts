@@ -35,4 +35,11 @@ export class User extends Base {
     unique: true,
   })
   email: string;
+
+  constructor(username?: string, password?: string, email?: string) {
+    super();
+    this.username = username;
+    this.password = password;
+    this.email = email;
+  }
 }

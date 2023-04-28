@@ -2,10 +2,16 @@ import { DataSource, ObjectType } from 'typeorm';
 import { load } from 'locter';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { resolveFilePaths, resolveFilePatterns, useSeederFactory } from 'typeorm-extension';
+import {
+  resolveFilePaths,
+  resolveFilePatterns,
+  useSeederFactory,
+} from 'typeorm-extension';
 
 import AppDataSource from '../src/datasource';
 import { AppModule } from '../src/app.module';
+import { User } from '../src/entities/user.entity';
+import { hash } from '../src/shared/utils/bcypt.util';
 import { BadRequestExceptionFilter } from '../src/shared/filters/bad-request-exception.filter';
 
 export const initApp = async (): Promise<INestApplication> => {
@@ -14,9 +20,7 @@ export const initApp = async (): Promise<INestApplication> => {
   }).compile();
   const app = moduleFixture.createNestApplication();
 
-  app.useGlobalPipes(
-    new ValidationPipe(),
-  );
+  app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new BadRequestExceptionFilter());
 
   await setFactories(['src/database/factories/*.factory.ts']);
@@ -26,12 +30,12 @@ export const initApp = async (): Promise<INestApplication> => {
 };
 
 export const setFactories = async (factoryFiles: string[]): Promise<void> => {
-    factoryFiles = await resolveFilePatterns(factoryFiles);
-    factoryFiles = resolveFilePaths(factoryFiles);
+  factoryFiles = await resolveFilePatterns(factoryFiles);
+  factoryFiles = resolveFilePaths(factoryFiles);
 
-    for (const factoryFile of factoryFiles) {
-      await load(factoryFile);
-    }
+  for (const factoryFile of factoryFiles) {
+    await load(factoryFile);
+  }
 };
 
 export const initDataSource = async (): Promise<DataSource> => {
@@ -59,4 +63,14 @@ export async function createMany<T>(
   overrideParams?: EntityProperty<T>,
 ): Promise<T[]> {
   return useSeederFactory(entity).saveMany(amount, overrideParams);
+}
+
+export async function createUser(
+  email: string,
+  password: string,
+): Promise<User> {
+  return await create<User>(User, {
+    email: email,
+    password: await hash(password),
+  });
 }

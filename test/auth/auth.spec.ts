@@ -1,6 +1,6 @@
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
-import { create, initApp, initDataSource } from '../helper';
+import { createUser, initApp, initDataSource } from '../helper';
 import { DataSource } from 'typeorm';
 
 import { User } from '../../src/entities/user.entity';
@@ -12,15 +12,13 @@ describe('AuthController (e2e)', () => {
   let user: User;
   const loginPath = '/auth/login';
   const userEmail = 'test-user@sun-asterisk.com';
+  const userPassword = '123456';
 
   beforeAll(async () => {
     app = app = await initApp();
     dataSource = await initDataSource();
     setDataSource(dataSource);
-    user = await create<User>(User, {
-      email: userEmail,
-      password: '123456'
-    });
+    user = await createUser(userEmail, userPassword);
   });
 
   describe('Login with invalid email', () => {
@@ -43,7 +41,7 @@ describe('AuthController (e2e)', () => {
         .post(loginPath)
         .send({
           email: userEmail,
-          password: '123456',
+          password: userPassword,
         })
         .expect(200)
         .expect((res) => {
@@ -53,7 +51,7 @@ describe('AuthController (e2e)', () => {
   });
 
   afterAll(async () => {
-    await dataSource.getRepository(User).delete({email: userEmail});
+    await dataSource.getRepository(User).delete({});
     await app.close();
   });
 });

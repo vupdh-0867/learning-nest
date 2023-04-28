@@ -52,4 +52,11 @@ export class Post extends Base {
     nullable: true,
   })
   fileName: string;
+
+  constructor(title?: string, description?: string, fileName?: string) {
+    super();
+    this.title = title;
+    this.description = description;
+    this.fileName = fileName;
+  }
 }

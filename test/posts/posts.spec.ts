@@ -1,11 +1,9 @@
 import * as request from 'supertest';
-import { Test } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { setDataSource } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 
-import { initDataSource } from '../helper';
-import { AppModule } from '../../src/app.module';
+import { create, createUser, initApp, initDataSource } from '../helper';
 import { Post } from '../../src/entities/post.entity';
 import { Tag } from '../../src/entities/tag.entity';
 import { User } from '../../src/entities/user.entity';
@@ -14,17 +12,15 @@ describe('PostsController (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
   let dataSource: DataSource;
+  let user: User;
+  const userEmail = 'phan.dang.hai.vu@sun-asterisk.com';
+  const userPassword = '123456';
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    app = app = await initApp();
     dataSource = await initDataSource();
     setDataSource(dataSource);
-    await app.init();
+    user = await createUser(userEmail, userPassword);
   });
 
   describe('login to system with valid email and password to get access token', () => {
@@ -32,8 +28,8 @@ describe('PostsController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/login')
         .send({
-          email: 'phan.dang.hai.vu@sun-asterisk.com',
-          password: 'secret',
+          email: userEmail,
+          password: userPassword,
         })
         .expect(200)
         .expect((res) => {
@@ -70,9 +66,11 @@ describe('PostsController (e2e)', () => {
           .send({ title: '', tags: [{ name: 'tag1' }, { name: 'tag2' }] })
           .expect(400)
           .expect((res) => {
-            expect(res.body.error).toEqual('Bad Request');
-            expect(res.body.message).toEqual(['title should not be empty']);
-            expect(res.body.statusCode).toEqual(400);
+            expect(res.body.errors[0].error).toEqual('Bad Request');
+            expect(res.body.errors[0].message).toEqual([
+              'title should not be empty',
+            ]);
+            expect(res.body.errors[0].statusCode).toEqual(400);
           });
       });
 
@@ -87,20 +85,19 @@ describe('PostsController (e2e)', () => {
           })
           .expect(400)
           .expect((res) => {
-            expect(res.body.error).toEqual('Bad Request');
-            expect(res.body.message).toEqual([
+            expect(res.body.errors[0].error).toEqual('Bad Request');
+            expect(res.body.errors[0].message).toEqual([
               'title must be shorter than or equal to 255 characters',
               'description must be shorter than or equal to 2000 characters',
             ]);
-            expect(res.body.statusCode).toEqual(400);
+            expect(res.body.errors[0].statusCode).toEqual(400);
           });
       });
 
       it('return error create post with existed title', async () => {
-        const userId = (await dataSource.getRepository(User).find())[0].id;
         await dataSource
           .getRepository(Post)
-          .save({ title: 'existed', userId: userId });
+          .save({ title: 'existed', userId: user.id });
 
         return request(app.getHttpServer())
           .post(baseUrl)
@@ -111,13 +108,15 @@ describe('PostsController (e2e)', () => {
           })
           .expect(400)
           .expect((res) => {
-            expect(res.body.error).toEqual('Bad Request');
-            expect(res.body.message).toEqual(['Title has been taken!']);
-            expect(res.body.statusCode).toEqual(400);
+            expect(res.body.errors[0].error).toEqual('Bad Request');
+            expect(res.body.errors[0].message).toEqual([
+              'Title has been taken!',
+            ]);
+            expect(res.body.errors[0].statusCode).toEqual(400);
           });
       });
 
-      it('return error create post with all data are valid', async () => {
+      it('return post infor when creating post with all data are valid', async () => {
         return request(app.getHttpServer())
           .post(baseUrl)
           .set({ Authorization: `Bearer ${accessToken}` })
@@ -175,13 +174,58 @@ describe('PostsController (e2e)', () => {
     });
 
     describe('UPDATE /posts/:id', () => {
-      // Implement tomorrow
+      let post: Post;
+
+      it('return unauthorize error when not pass access_token', async () => {
+        post = await create<Post>(Post, { userId: user.id });
+
+        return request(app.getHttpServer())
+          .patch(baseUrl + '/' + post.id)
+          .expect(401)
+          .expect((res) => {
+            expect(res.body.error).toEqual('Unauthorized');
+            expect(res.body.message).toEqual('Token is invalid');
+            expect(res.body.statusCode).toEqual(401);
+          });
+      });
+
+      it('return updated post when update post successfully', async () => {
+        post = await create<Post>(Post, { userId: user.id });
+        const tag1 = await create<Tag>(Tag, { postId: post.id, name: 'tag 1' });
+        await create<Tag>(Tag, { postId: post.id, name: 'tag 2' });
+        const tag3 = await create<Tag>(Tag, { postId: post.id, name: 'tag 3' });
+
+        return request(app.getHttpServer())
+          .patch(baseUrl + '/' + post.id)
+          .set({ Authorization: `Bearer ${accessToken}` })
+          .send({
+            title: 'new title',
+            description: 'new description',
+            tags: [
+              { id: tag1.id, name: 'tag 01' },
+              { id: tag3.id, name: 'tag 3', deleted: true },
+              { name: 'tag 4' },
+            ],
+          })
+          .expect(200)
+          .expect((res) => {
+            expect(res.body.id).toEqual(post.id);
+            expect(res.body.description).toEqual('new description');
+            expect(res.body.title).toEqual('new title');
+            expect(
+              res.body.tags.map((tag: Tag) => {
+                return tag.name;
+              }),
+            ).toEqual(['tag 01', 'tag 2', 'tag 4']);
+          });
+      });
     });
   });
 
   afterAll(async () => {
     await dataSource.getRepository(Tag).delete({});
     await dataSource.getRepository(Post).delete({});
+    await dataSource.getRepository(User).delete({});
     await app.close();
   });
 });

@@ -50,7 +50,9 @@ export class PostsController {
 
   @Get(':id')
   @Serializer(DetailsPostDto)
-  findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<DetailsPostDto> {
+  findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<DetailsPostDto> {
     return this.postsService.findOne(id);
   }
 

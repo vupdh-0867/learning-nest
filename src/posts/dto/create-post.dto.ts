@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 
 import { EntityConstant } from '../../shared/constants/entity.constant';
-import { CreateTagDto } from '../../tags/create-tag.dto';
+import { CreateTagDto } from '../../tags/dto/create-tag.dto';
 
 export class CreatePostDto {
   @IsNotEmpty()
