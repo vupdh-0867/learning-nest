@@ -13,6 +13,10 @@ import { AppModule } from '../src/app.module';
 import { User } from '../src/entities/user.entity';
 import { hash } from '../src/shared/utils/bcypt.util';
 import { BadRequestExceptionFilter } from '../src/shared/filters/bad-request-exception.filter';
+import { QueueService } from '../src/queue/queue.service';
+import { UserDto } from '../src/user/dtos/user.dto';
+import { Post } from '../src/entities/post.entity';
+import { FileService } from '../src/multer/file.service';
 
 export const initApp = async (): Promise<INestApplication> => {
   const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -73,4 +77,34 @@ export async function createUser(
     email: email,
     password: await hash(password),
   });
+}
+
+export async function mockSendMail(queueService: QueueService) {
+  jest
+    .spyOn(queueService, 'sendMailCreatePost')
+    .mockImplementation((_user: UserDto, _post: Post) => {
+      return;
+    });
+}
+
+export async function mockFileService(fileService: FileService) {
+  jest
+    .spyOn(fileService, 'uploadFile')
+    .mockImplementation((file: Express.Multer.File) => {
+      const randomToken = Array(4)
+        .fill(null)
+        .map(() => Math.round(Math.random() * 16).toString(16))
+        .join('');
+      return Promise.resolve(`${randomToken}-${file.originalname}`);
+    });
+
+  jest
+    .spyOn(fileService, 'generatePresignedUrl')
+    .mockImplementation((key: string) => {
+      let url: string;
+      if (key) url = `https://example.com/${key}`;
+      else url = '';
+
+      return Promise.resolve(url);
+    });
 }
