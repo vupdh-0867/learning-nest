@@ -6,15 +6,11 @@ export class FileService {
   constructor(private readonly s3: S3) {}
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
-    const randomToken = Array(4)
-      .fill(null)
-      .map(() => Math.round(Math.random() * 16).toString(16))
-      .join('');
     const uploadResult = await this.s3
       .upload({
         Bucket: process.env.BUCKET_NAME,
         Body: file.buffer,
-        Key: `${randomToken}-${file.originalname}`,
+        Key: this.generateFileKey(file.originalname),
       })
       .promise();
 
@@ -28,5 +24,14 @@ export class FileService {
       Bucket: process.env.BUCKET_NAME,
       Key: key,
     });
+  }
+
+  generateFileKey(filename: string): string {
+    const randomToken = Array(4)
+      .fill(null)
+      .map(() => Math.round(Math.random() * 16).toString(16))
+      .join('');
+
+    return `${randomToken}-${filename}`;
   }
 }

@@ -48,6 +48,9 @@ export class PostsService {
     if (!post) {
       throw new BadRequestException([`This ${Post.name} does not exist!`]);
     }
+    if (await this.postRepository.findOneBy({ title: updatePostDto.title })) {
+      throw new BadRequestException(['Title has been taken!']);
+    }
     post = await this.postRepository.createPostAndTags(
       {
         ...updatePostDto,
