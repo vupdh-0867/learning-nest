@@ -1,4 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+import { createObjectCsvStringifier } from 'csv-writer';
+import * as ExcelJS from 'exceljs';
 
 import { PostRepository } from './post.repository';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -7,6 +9,8 @@ import { Post } from '../entities/post.entity';
 import { FileService } from '../multer/file.service';
 import { UserDto } from '../user/dtos/user.dto';
 import { QueueService } from '../queue/queue.service';
+import { ExcelService } from '../media/excel/excel.service';
+import { PdfService } from '../media/pdf/pdf.service';
 
 @Injectable()
 export class PostsService {
@@ -14,6 +18,8 @@ export class PostsService {
     private readonly postRepository: PostRepository,
     private readonly fileService: FileService,
     private readonly queueService: QueueService,
+    private readonly excelService: ExcelService,
+    private readonly pdfService: PdfService,
   ) {}
 
   async create(
@@ -90,6 +96,37 @@ export class PostsService {
     this.postRepository.softDelete(post.id);
 
     return post;
+  }
+
+  async exportCsv(): Promise<string> {
+    const posts: Post[] = await this.postRepository.find();
+    const csvStringifier = createObjectCsvStringifier({
+      header: [
+        { id: 'id', title: 'ID' },
+        { id: 'title', title: 'Title' },
+        { id: 'description', title: 'Description' },
+      ],
+    });
+    const records = posts.map((product) => ({
+      id: product.id,
+      title: product.title,
+      description: product.description,
+    }));
+    const csvData =
+      csvStringifier.getHeaderString() +
+      csvStringifier.stringifyRecords(records);
+
+    return csvData;
+  }
+
+  async exportExcel(): Promise<ExcelJS.Workbook> {
+    const posts: Post[] = await this.postRepository.find();
+
+    return this.excelService.exportListPosts(posts);
+  }
+
+  exportPdf() {
+    return this.pdfService.drawPackingSlip();
   }
 
   private async attachPresignedUrl(post: Post): Promise<Post> {
