@@ -3,10 +3,19 @@ import { INestApplication } from '@nestjs/common';
 import { setDataSource } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 
-import { create, createUser, initApp, initDataSource } from '../helper';
+import {
+  create,
+  createUser,
+  initApp,
+  initDataSource,
+  mockFileService,
+  mockSendMail,
+} from '../helper';
 import { Post } from '../../src/entities/post.entity';
 import { Tag } from '../../src/entities/tag.entity';
 import { User } from '../../src/entities/user.entity';
+import { QueueService } from '../../src/queue/queue.service';
+import { FileService } from '../../src/multer/file.service';
 
 describe('PostsController (e2e)', () => {
   let app: INestApplication;
@@ -17,7 +26,7 @@ describe('PostsController (e2e)', () => {
   const userPassword = '123456';
 
   beforeAll(async () => {
-    app = app = await initApp();
+    app = await initApp();
     dataSource = await initDataSource();
     setDataSource(dataSource);
     user = await createUser(userEmail, userPassword);
@@ -117,6 +126,8 @@ describe('PostsController (e2e)', () => {
       });
 
       it('return post infor when creating post with all data are valid', async () => {
+        mockSendMail(app.get(QueueService));
+        mockFileService(app.get(FileService));
         return request(app.getHttpServer())
           .post(baseUrl)
           .set({ Authorization: `Bearer ${accessToken}` })
@@ -194,6 +205,7 @@ describe('PostsController (e2e)', () => {
         const tag1 = await create<Tag>(Tag, { postId: post.id, name: 'tag 1' });
         await create<Tag>(Tag, { postId: post.id, name: 'tag 2' });
         const tag3 = await create<Tag>(Tag, { postId: post.id, name: 'tag 3' });
+        mockFileService(app.get(FileService));
 
         return request(app.getHttpServer())
           .patch(baseUrl + '/' + post.id)

@@ -41,7 +41,17 @@ export class PostsService {
     userId: string,
     file: Express.Multer.File,
   ): Promise<Post> {
-    const post = await this.postRepository.createPostAndTags(
+    let post = await this.postRepository.findOneByOrFail({
+      userId: userId,
+      id,
+    });
+    if (!post) {
+      throw new BadRequestException([`This ${Post.name} does not exist!`]);
+    }
+    if (await this.postRepository.findOneBy({ title: updatePostDto.title })) {
+      throw new BadRequestException(['Title has been taken!']);
+    }
+    post = await this.postRepository.createPostAndTags(
       {
         ...updatePostDto,
         id,

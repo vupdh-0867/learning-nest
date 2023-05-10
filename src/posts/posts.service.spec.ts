@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { PostsService } from './posts.service';
 import { PostRepository } from './post.repository';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 import { FileService } from '../multer/file.service';
 import { Post } from '../entities/post.entity';
 import { User } from '../entities/user.entity';
@@ -25,6 +26,14 @@ describe('PostService', () => {
     '2222',
     'phan.dang.hai.vu@sun-asterisk.com',
   );
+  const mockFile = {
+    fieldname: 'example',
+    originalname: 'example.jpg',
+    encoding: '7bit',
+    mimetype: 'image/jpeg',
+    buffer: Buffer.from(__dirname + '/../../example.jpg'),
+    size: 518,
+  } as Express.Multer.File;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -98,17 +107,10 @@ describe('PostService', () => {
   });
 
   describe('create', () => {
+    const createPostDTO = new CreatePostDto(testTitle, testDescription);
+
     describe('create post successfully', () => {
       it('should return created post', async () => {
-        const createPostDTO = new CreatePostDto(testTitle, testDescription);
-        const mockFile = {
-          fieldname: 'example',
-          originalname: 'example.jpg',
-          encoding: '7bit',
-          mimetype: 'image/jpeg',
-          buffer: Buffer.from(__dirname + '/../../example.jpg'),
-          size: 518,
-        } as Express.Multer.File;
         const post = await service.create(createPostDTO, user, mockFile);
 
         expect(post).toEqual(onePost);
@@ -118,14 +120,7 @@ describe('PostService', () => {
     describe('create post with title exist in database', () => {
       it('should raise bad request error', async () => {
         const createPostDTO = new CreatePostDto(testTitle, testDescription);
-        const mockFile = {
-          fieldname: 'example',
-          originalname: 'example.jpg',
-          encoding: '7bit',
-          mimetype: 'image/jpeg',
-          buffer: Buffer.from(__dirname + '/../../example.jpg'),
-          size: 518,
-        } as Express.Multer.File;
+
         jest.spyOn(repo, 'findOneBy').mockResolvedValue(onePost);
 
         expect(service.create(createPostDTO, user, mockFile)).rejects.toThrow(
@@ -136,8 +131,40 @@ describe('PostService', () => {
   });
 
   describe('update', () => {
-    it('should return updated post', async () => {
-      // Implement later
+    const updatePostDTO = new UpdatePostDto(testTitle, testDescription);
+
+    describe('post exists', () => {
+      it('should update successfully and return post', async () => {
+        const post = await service.update(
+          'valid_id',
+          updatePostDTO,
+          'user_id',
+          mockFile,
+        );
+        expect(post).toEqual(onePost);
+      });
+    });
+
+    describe('post does not exist', () => {
+      it('should raise not found error', async () => {
+        jest.spyOn(repo, 'findOneByOrFail').mockResolvedValue(null);
+
+        expect(
+          service.update('invalid_id', updatePostDTO, 'user_id', mockFile),
+        ).rejects.toThrow(
+          new BadRequestException(['This Post does not exist!']),
+        );
+      });
+    });
+
+    describe('update post with title exist in database', () => {
+      it('should raise bad request error', async () => {
+        jest.spyOn(repo, 'findOneBy').mockResolvedValue(onePost);
+
+        expect(
+          service.update('valid_id', updatePostDTO, 'user_id', mockFile),
+        ).rejects.toThrow(new BadRequestException(['Title has been taken!']));
+      });
     });
   });
 
