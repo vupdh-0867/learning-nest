@@ -8,6 +8,7 @@ import { Post } from '../entities/post.entity';
 import { UploadFileModule } from '../multer/upload-file.module';
 import { QueueModule } from '../queue/queue.module';
 import { TagModule } from '../tags/tag.module';
+import { PostCreatedListener } from './listeners/post-created.listener';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { TagModule } from '../tags/tag.module';
     QueueModule,
     TagModule,
   ],
-  providers: [PostsService, PostRepository],
+  providers: [PostsService, PostRepository, PostCreatedListener],
   controllers: [PostsController],
 })
 export class PostsModule {}
