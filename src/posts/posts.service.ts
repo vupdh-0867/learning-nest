@@ -7,6 +7,8 @@ import { Post } from '../entities/post.entity';
 import { FileService } from '../multer/file.service';
 import { UserDto } from '../user/dtos/user.dto';
 import { QueueService } from '../queue/queue.service';
+import { PostCreatedEvent } from './events/post-created.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class PostsService {
@@ -14,6 +16,7 @@ export class PostsService {
     private readonly postRepository: PostRepository,
     private readonly fileService: FileService,
     private readonly queueService: QueueService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(
@@ -31,6 +34,13 @@ export class PostsService {
       file,
     );
     this.queueService.sendMailCreatePost(user, post);
+
+    const postCreatedEvent = new PostCreatedEvent();
+
+    postCreatedEvent.name = post.title;
+    postCreatedEvent.description = post.description;
+
+    this.eventEmitter.emit('post.created', postCreatedEvent);
 
     return this.attachPresignedUrl(post);
   }
