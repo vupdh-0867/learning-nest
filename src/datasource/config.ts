@@ -1,17 +1,21 @@
 import { DataSourceOptions } from 'typeorm';
-import { config } from 'dotenv';
+import { config as configEnv } from 'dotenv';
+import config from 'src/config/config';
+import DatabaseLogger from 'src/loggers/databaseLogger';
 
+configEnv();
 config();
 
+const dbOption = config().database;
 const isTestEnv = process.env.NODE_ENV === 'test';
 
 export default {
-  type: 'postgres',
-  host: process.env.DATABASE_HOST,
-  port: +process.env.DATABASE_PORT,
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
-  database: isTestEnv ? process.env.DATABASE_TEST : process.env.DATABASE,
+  type: dbOption.type,
+  host: dbOption.host,
+  port: dbOption.port,
+  username: dbOption.username,
+  password: dbOption.password,
+  database: isTestEnv ? dbOption.dbTest : dbOption.db,
   entities: [
     isTestEnv ? 'src/entities/*.entity.ts' : 'dist/entities/*.entity.js',
   ],
@@ -19,4 +23,5 @@ export default {
   migrationsTableName: 'migrations',
   seeds: ['src/database/seeds/*.seed.ts'],
   factories: ['src/database/factories/*.factory.ts'],
+  logger: new DatabaseLogger(),
 } as DataSourceOptions;

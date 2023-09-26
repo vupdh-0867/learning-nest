@@ -10,6 +10,8 @@ import { DatabaseModule } from './database.module';
 import { AuthModule } from './auth/auth.module';
 import { queueConfig } from './queue/queue.config';
 import { mailerConfig } from './mailer/mailer.config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { mailerConfig } from './mailer/mailer.config';
     PostsModule,
     DatabaseModule,
     AuthModule,
+    EventEmitterModule.forRoot(),
+    ChatModule
   ],
   controllers: [AppController],
   providers: [AppService],

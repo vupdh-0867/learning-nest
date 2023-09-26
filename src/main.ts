@@ -13,7 +13,18 @@ async function bootstrap() {
     new BadRequestExceptionFilter(),
     new EntityNotFoundExceptionFilter(),
   );
-
+  app.enableCors({
+    origin: 'http://127.0.0.1:5500',
+    methods: 'GET,PUT,POST,DELETE',
+    allowedHeaders: [
+      'Content-Type',
+      'csrf-token',
+      'xsrf-token',
+      'x-csrf-token',
+      'x-xsrf-token',
+    ],
+    credentials: true,
+  });
   await app.listen(3000);
 }
 bootstrap();
